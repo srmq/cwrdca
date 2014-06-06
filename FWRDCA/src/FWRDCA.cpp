@@ -124,20 +124,24 @@ double FWRDCA::updateWeights(util::FuzzyCluster &cluster, double maxValue, int c
 		addEquations(i, cluster.getMembershipDegree(i), cluster.getCenter(), lp, (i+1));
 	}
 
-	if (!this->possibilisticMode){ // sum of weights = 1.0
+
 		int rowNum = glp_add_rows(lp, 1);
+	if (!this->possibilisticMode){ // sum of weights = 1.0
 		glp_set_row_bnds(lp, rowNum, GLP_FX, 1.0, 1.0);
-		double weightCoefs[this->nCriteria+1];
-		std::fill(weightCoefs, weightCoefs + this->nCriteria+1, 1.0);
-		int weightIndices[this->nCriteria+1];
-		{
-			int j = 0;
-			for (int i = this->nElems+1; i <= (this->nElems + this->nCriteria); i++, j++) {
-				weightIndices[j+1] = i;
-			}
-		}
-		glp_set_mat_row(lp, rowNum, this->nCriteria, weightIndices, weightCoefs);
+	} else {
+		glp_set_row_bnds(lp, rowNum, GLP_LO, 1.0, 1.0);
 	}
+	double weightCoefs[this->nCriteria+1];
+	std::fill(weightCoefs, weightCoefs + this->nCriteria+1, 1.0);
+	int weightIndices[this->nCriteria+1];
+	{
+		int j = 0;
+		for (int i = this->nElems+1; i <= (this->nElems + this->nCriteria); i++, j++) {
+			weightIndices[j+1] = i;
+		}
+	}
+	glp_set_mat_row(lp, rowNum, this->nCriteria, weightIndices, weightCoefs);
+
 
 	{ //maxWeightDifference
 		if (this->maxWeightAbsoluteDifferenceGlobal != 1.0) {
